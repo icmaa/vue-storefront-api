@@ -17,7 +17,7 @@ module.exports = ({ config, db }) => {
     }
 
     const reqHash = sha3_224(url)
-    const cacheTags = ['CMS', `CMS-${type}`.toUpperCase(), `CMS-${type}-${uid}`.toUpperCase()]
+    const cacheTags = ['cms', `cms-${type}`, `cms-${type}-${uid}`]
 
     const cachedResult = await cacheHandler(config, res, reqHash)
     if (!cachedResult) {
@@ -50,7 +50,7 @@ module.exports = ({ config, db }) => {
     }
 
     const reqHash = sha3_224(url)
-    let cacheTags = ['CMS', `CMS-${type}`.toUpperCase()]
+    let cacheTags = ['cms', `cms-${type}`]
 
     const cachedResult = await cacheHandler(config, res, reqHash)
     if (!cachedResult) {
