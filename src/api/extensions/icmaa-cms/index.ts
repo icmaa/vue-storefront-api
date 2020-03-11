@@ -1,23 +1,40 @@
 import { apiStatus } from '../../../lib/util'
+import { sha3_224 } from 'js-sha3'
 import { Router } from 'express'
 
 import storyblokConnector from './connector/storyblok'
+import { cacheResult, cacheHandler } from './connector/cache'
 import { getClient as esClient } from '../../../lib/elastic'
 
 module.exports = ({ config, db }) => {
   let api = Router()
 
   api.get('/by-uid', async (req, res) => {
-    if (req.query.type === undefined || req.query.uid === undefined) {
+    const { url, query } = req
+    const { type, uid, lang } = query
+    if (type === undefined || uid === undefined) {
       return apiStatus(res, '"uid" and "type" are mandatory in request url', 500)
+    }
+
+    const reqHash = sha3_224(url)
+    const cacheTags = ['CMS', `CMS-${type}`.toUpperCase(), `CMS-${type}-${uid}`.toUpperCase()]
+
+    const cachedResult = await cacheHandler(config, res, reqHash)
+    if (!cachedResult) {
+      console.log(`Cache miss [${url}]`)
+    } else {
+      console.log(`Cache hit [${url}]`)
+      return
     }
 
     let serviceName = config.extensions.icmaaCms.service;
     switch (serviceName) {
       case 'storyblok':
-        const { type, uid, lang } = req.query
         await storyblokConnector.fetch({ type, uid, lang })
-          .then(response => apiStatus(res, response, 200))
+          .then(response => {
+            cacheResult(config, response, reqHash, cacheTags)
+            return apiStatus(res, response, 200)
+          })
           .catch(error => apiStatus(res, error.message, 500))
         break
       default:
@@ -26,16 +43,31 @@ module.exports = ({ config, db }) => {
   })
 
   api.get('/search', async (req, res) => {
-    if (req.query.type === undefined || req.query.q === undefined) {
+    const { url, query } = req
+    const { type, q, lang, fields } = query
+    if (type === undefined || q === undefined) {
       return apiStatus(res, '"q" and "type" are mandatory in request url', 500)
+    }
+
+    const reqHash = sha3_224(url)
+    let cacheTags = ['CMS', `CMS-${type}`.toUpperCase()]
+
+    const cachedResult = await cacheHandler(config, res, reqHash)
+    if (!cachedResult) {
+      console.log(`Cache miss [${url}]`)
+    } else {
+      console.log(`Cache hit [${url}]`)
+      return
     }
 
     let serviceName = config.extensions.icmaaCms.service;
     switch (serviceName) {
       case 'storyblok':
-        const { type, q, lang, fields } = req.query
         await storyblokConnector.search({ type, q, lang, fields })
-          .then(response => apiStatus(res, response, 200))
+          .then(response => {
+            cacheResult(config, response, reqHash, cacheTags)
+            return apiStatus(res, response, 200)
+          })
           .catch(error => apiStatus(res, error.message, 500))
         break
       default:

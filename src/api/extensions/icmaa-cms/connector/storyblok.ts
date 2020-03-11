@@ -28,8 +28,7 @@ class StoryblokConnector {
         )
 
         const headers = {
-          'Accept-Encoding': 'gzip, deflate',
-          'Cache-Control': 'no-cache'
+          'Accept-Encoding': 'gzip, deflate'
         }
 
         return new Promise((resolve) => {
