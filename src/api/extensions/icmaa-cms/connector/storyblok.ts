@@ -171,6 +171,20 @@ class StoryblokConnector {
 
     return result
   }
+
+  public async datasource ({ code, page = 1 }) {
+    try {
+      return this.api().get('cdn/datasource_entries', {
+        datasource: code,
+        'page': page,
+        'per_page': 1000
+      }).then(response => {
+        return response.datasource_entries.map(e => ({ value: e.value, label: e.name }))
+      })
+    } catch (error) {
+      return error
+    }
+  }
 }
 
 export default new StoryblokConnector()

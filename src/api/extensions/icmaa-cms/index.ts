@@ -158,5 +158,38 @@ module.exports = ({ config }) => {
     }).catch(e => apiStatus(res, 'Elasticsearch client: ' + e.message, 500))
   })
 
+  api.get('/datasource/:code', async (req, res) => {
+    const { url, params } = req
+    const { code } = params
+    if (code === undefined) {
+      return apiStatus(res, '"Code" is mandatory in request url', 500)
+    }
+
+    const reqHash = sha3_224(url)
+    const cacheTags = ['cms', `cms-datasource`, `cms-datasource-${code}`]
+
+    const cachedResult = await cacheHandler(config, res, reqHash, req)
+    if (!cachedResult) {
+      console.log(`Cache miss [${url}]`)
+    } else {
+      console.log(`Cache hit [${url}]`)
+      return
+    }
+
+    let serviceName = config.extensions.icmaaCms.service;
+    switch (serviceName) {
+      case 'storyblok':
+        await storyblokConnector.datasource({ code })
+          .then(response => {
+            cacheResult(config, response, reqHash, cacheTags)
+            return apiStatus(res, response, 200)
+          })
+          .catch(error => apiStatus(res, error.message, 500))
+        break
+      default:
+        return apiStatus(res, `CMS service "${serviceName}" is not supported yet`, 500)
+    }
+  })
+
   return api
 }
