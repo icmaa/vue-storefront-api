@@ -6,12 +6,12 @@ import storyblokConnector from './connector/storyblok'
 import { cacheResult, cacheHandler } from './connector/cache'
 import { getClient as esClient } from '../../../lib/elastic'
 
-module.exports = ({ config, db }) => {
+module.exports = ({ config }) => {
   let api = Router()
 
   api.get('/by-uid', async (req, res) => {
     const { url, query } = req
-    const { type, uid, lang } = query
+    const { type, uid, lang, key } = query
     if (type === undefined || uid === undefined) {
       return apiStatus(res, '"uid" and "type" are mandatory in request url', 500)
     }
@@ -19,7 +19,7 @@ module.exports = ({ config, db }) => {
     const reqHash = sha3_224(url)
     const cacheTags = ['cms', `cms-${type}`, `cms-${type}-${uid}`]
 
-    const cachedResult = await cacheHandler(config, res, reqHash)
+    const cachedResult = await cacheHandler(config, res, reqHash, req)
     if (!cachedResult) {
       console.log(`Cache miss [${url}]`)
     } else {
@@ -30,7 +30,7 @@ module.exports = ({ config, db }) => {
     let serviceName = config.extensions.icmaaCms.service;
     switch (serviceName) {
       case 'storyblok':
-        await storyblokConnector.fetch({ type, uid, lang })
+        await storyblokConnector.fetch({ type, uid, lang, key })
           .then(response => {
             cacheResult(config, response, reqHash, cacheTags)
             return apiStatus(res, response, 200)
@@ -52,7 +52,7 @@ module.exports = ({ config, db }) => {
     const reqHash = sha3_224(url)
     let cacheTags = ['cms', `cms-${type}`]
 
-    const cachedResult = await cacheHandler(config, res, reqHash)
+    const cachedResult = await cacheHandler(config, res, reqHash, req)
     if (!cachedResult) {
       console.log(`Cache miss [${url}]`)
     } else {

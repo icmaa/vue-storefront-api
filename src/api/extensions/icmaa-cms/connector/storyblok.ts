@@ -74,18 +74,33 @@ class StoryblokConnector {
     }
   }
 
-  public async fetch ({ type, uid, lang }) {
+  public async fetch ({ type, uid, lang, key }) {
     try {
+      let request: Promise<any>
+      const fetchById = (key && key === 'id')
+
       this.matchLanguage(lang)
-      return this.api().get('cdn/stories', {
-        'starts_with': this.lang ? `${this.lang}/*` : '',
-        'filter_query': {
-          'component': { 'in': type },
-          'identifier': { 'in': uid }
-        }
-      })
+
+      if (!fetchById) {
+        request = this.api().get('cdn/stories', {
+          'starts_with': this.lang ? `${this.lang}/*` : '',
+          'filter_query': {
+            'component': { 'in': type },
+            [key || 'identifier']: { 'in': uid }
+          }
+        })
+      } else {
+        request = this.api().get(
+          `cdn/stories/${uid}`,
+          { language: this.lang ? this.lang : undefined }
+        )
+      }
+
+      return request
         .then(response => {
-          const story = response.stories.shift() || { }
+          const story = fetchById
+            ? response.story || {}
+            : response.stories.shift() || {}
           const content = extractStoryContent(story)
           objectKeysToCamelCase(content)
           extractPluginValues(content)

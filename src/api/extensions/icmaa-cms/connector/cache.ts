@@ -11,8 +11,8 @@ const cacheResult = (config: Record<string, any>, result: any, hash: string, tag
   }
 }
 
-const cacheHandler = async (config: Record<string, any>, res: Record<string, any>, hash: string): Promise<boolean|string> => {
-  if (config.server.useOutputCache && cache) {
+const cacheHandler = async (config: Record<string, any>, res: Record<string, any>, hash: string, req: Record<string, any>): Promise<boolean|string> => {
+  if (!req.header('X-VS-Cache-Bypass') && config.server.useOutputCache && cache) {
     return cache.get(
       'api:' + hash
     ).then(output => {
