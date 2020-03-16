@@ -3,7 +3,7 @@ import config from 'config'
 import StoryblokClient from 'storyblok-js-client'
 
 const pluginMap: Record<string, any>[] = config.get('extensions.icmaaCms.storyblok.pluginFieldMap')
-const metaFieldsToTransport = [{'name': 'uname'}, 'uuid', 'published_at', 'created_at', 'first_published_at']
+const metaFieldsToTransport = [{'id': 'story_id'}, {'name': 'uname'}, 'uuid', 'published_at', 'created_at', 'first_published_at']
 
 const getFieldMap = (key) => pluginMap.find(m => m.key === key)
 
