@@ -31,7 +31,7 @@ class StoryblokConnector {
           'Accept-Encoding': 'gzip, deflate'
         }
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
           let data = ''
           http2get(
             `${baseUrl}/${endpoint}${querystring}`,
@@ -50,9 +50,15 @@ class StoryblokConnector {
               }
 
               output
+                .on('error', err => reject(err.message))
                 .on('data', chunk => { data += chunk })
                 .on('end', () => {
-                  resolve(JSON.parse(data))
+                  if (![200, 201, 301].includes(response.statusCode)) {
+                    console.log(JSON.parse(data).error)
+                    reject(JSON.parse(data).error)
+                  } else {
+                    resolve(JSON.parse(data))
+                  }
                 })
             })
         })
@@ -105,8 +111,8 @@ class StoryblokConnector {
           objectKeysToCamelCase(content)
           extractPluginValues(content)
           return content
-        }).catch(error => {
-          console.log(error)
+        }).catch(() => {
+          return { }
         })
     } catch (error) {
       return error
@@ -152,8 +158,8 @@ class StoryblokConnector {
       }
 
       return this.searchRequest({ queryObject, type, page: page + 1, results, fields })
-    }).catch(error => {
-      console.log(error)
+    }).catch(() => {
+      return []
     })
   }
 
@@ -180,6 +186,8 @@ class StoryblokConnector {
         'per_page': 1000
       }).then(response => {
         return response.datasource_entries.map(e => ({ value: e.value, label: e.name }))
+      }).catch(() => {
+        return []
       })
     } catch (error) {
       return error
