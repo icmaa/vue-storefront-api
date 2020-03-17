@@ -3,6 +3,7 @@ import config from 'config'
 import qs from 'qs'
 import { get as http2get } from 'http2-client'
 import zlib from 'zlib'
+import cache from '../../../../lib/cache-instance'
 
 import { objectKeysToCamelCase } from '../helpers/formatter'
 import { extractStoryContent, extractPluginValues } from '../helpers/formatter/storyblok'
@@ -13,9 +14,14 @@ class StoryblokConnector {
 
   public api () {
     return {
-      get: (endpoint: string = 'cdn/stories', params: Record<string, any>): Promise<any> => {
+      get: async (endpoint: string = 'cdn/stories', params: Record<string, any> = {}, cv?: string): Promise<any> => {
         const baseUrl = 'https://api.storyblok.com/v1'
-        const defaults = { token: config.get('extensions.icmaaCms.storyblok.accessToken') }
+        const defaults = {
+          token: config.get('extensions.icmaaCms.storyblok.accessToken'),
+          // Storyblok needs a cache-version or will alwys serve uncached versions which leads to hit the limit quickly.
+          // @see https://www.storyblok.com/docs/api/content-delivery#topics/cache-invalidation
+          cv: cv || await this.api().cv()
+        }
 
         const querystring: string = '?' + qs.stringify(
           merge(defaults, params),
@@ -55,6 +61,21 @@ class StoryblokConnector {
                     resolve(JSON.parse(data))
                   }
                 })
+            })
+        })
+      },
+      cv: async (): Promise<string> => {
+        const cacheKey = 'storyblokCacheVersion'
+        return cache.get(cacheKey).then(output => {
+          if (output !== null) {
+            return output.toString()
+          }
+          return this.api()
+            .get('cdn/spaces/me', {}, 'justnow')
+            .then(resp => {
+              const cv = resp.space.version.toString()
+              return cache.set(cacheKey, cv, ['cms', `cms-cacheversion`])
+                .then(() => cv)
             })
         })
       }
@@ -131,7 +152,7 @@ class StoryblokConnector {
   public async searchRequest ({ queryObject, type, page = 1, results = [], fields }) {
     return this.api().get('cdn/stories', {
       'page': page,
-      'per_page': 100,
+      'per_page': 25,
       'starts_with': this.lang ? `${this.lang}/*` : '',
       'filter_query': {
         'component': { 'in': type },
@@ -148,7 +169,7 @@ class StoryblokConnector {
       }
 
       results = [].concat(results, stories)
-      if (stories.length < 100) {
+      if (stories.length < 25) {
         return results
       }
 
