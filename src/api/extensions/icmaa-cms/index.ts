@@ -191,5 +191,23 @@ module.exports = ({ config }) => {
     }
   })
 
+  api.get('/edit/:id', async (req, res) => {
+    const { id } = req.params
+    if (id === undefined) {
+      return apiStatus(res, '"id" is mandatory in request url', 500)
+    }
+
+    let serviceName = config.extensions.icmaaCms.service;
+    switch (serviceName) {
+      case 'storyblok':
+        const { spaceId } = config.extensions.icmaaCms.storyblok
+        return res
+          .status(301)
+          .redirect(`https://app.storyblok.com/#!/me/spaces/${spaceId}/stories/0/0/${id}`)
+      default:
+        return apiStatus(res, `CMS service "${serviceName}" is not supported yet`, 500)
+    }
+  })
+
   return api
 }
