@@ -9,13 +9,12 @@ import Redis from '../icmaa/helpers/redis'
 
 module.exports = ({ config }) => {
   let api = Router()
-  let token
 
-  /**
-   * GET send token to authorize email
-   */
+  const tokenLimit = 5
+  const getCurrentTimestamp = () => Math.floor(new Date().getTime() / 1000)
+
   api.get('/get-token', (req, res) => {
-    token = jwt.encode(Date.now(), config.extensions.mailService.secretString)
+    const token = jwt.encode(getCurrentTimestamp(), config.extensions.mailService.secretString)
     apiStatus(res, token, 200)
   })
 
@@ -38,9 +37,16 @@ module.exports = ({ config }) => {
     }
 
     const userData = req.body
-    if (!userData.token || userData.token !== token) {
+    if (!userData.token) {
       apiStatus(res, 'Email is not authorized!', 500)
     }
+
+    const currentTime = getCurrentTimestamp()
+    const tokenTime = jwt.decode(userData.token, config.extensions.mailService.secretString)
+    if (currentTime - tokenTime > tokenLimit) {
+      apiStatus(res, 'Token has expired ', 500)
+    }
+
     const { host, port, secure, user, pass } = config.extensions.mailService.transport
     if (!host || !port || !user || !pass) {
       apiStatus(res, 'No transport is defined for mail service!', 500)
