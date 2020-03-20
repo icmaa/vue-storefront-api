@@ -66,6 +66,10 @@ class StoryblokConnector {
       },
       cv: async (): Promise<string> => {
         const cacheKey = 'storyblokCacheVersion'
+        if (!config.get('server.useOutputCache') || !cache || !cache.hasOwnProperty('get')) {
+          return Date.now().toString()
+        }
+
         return cache.get(cacheKey).then(output => {
           if (output !== null) {
             return output.toString()
@@ -77,6 +81,9 @@ class StoryblokConnector {
               return cache.set(cacheKey, cv, ['cms', `cms-cacheversion`])
                 .then(() => cv)
             })
+        }).catch(e => {
+          console.log('Error during storyblok CV fetch:', e)
+          return Date.now().toString()
         })
       }
     }
