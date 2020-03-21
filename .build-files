@@ -1,0 +1,16 @@
+./config/* \
+./dist/* \
+./scripts/* \
+./src/* \
+.env \
+.eslintrc.js \
+babel.config.js \
+CHANGELOG.md \
+ecosystem.json \
+LICENSE \
+nodemon.json \
+package.json \
+README.md \
+tsconfig.json \
+yarn.lock \
+-x "*/node_modules/*"

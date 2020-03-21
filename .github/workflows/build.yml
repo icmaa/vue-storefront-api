@@ -67,7 +67,7 @@ jobs:
       - name: Zip build
         run: |
           mkdir builds
-          zip -r builds/${{ env.APP }}-${{ matrix.env.MANDANT }}-${{ env.ENV }}-latest.zip $(cat build/.FILES)
+          zip -r builds/${{ env.APP }}-${{ matrix.env.MANDANT }}-${{ env.ENV }}-latest.zip $(cat .build-files)
           cp builds/${{ env.APP }}-${{ matrix.env.MANDANT }}-${{ env.ENV }}-latest.zip builds/${{ env.APP }}-${{ matrix.env.MANDANT }}-${{ env.ENV }}-$(date '+%Y%m%d-%H%M%S').zip
 
       - name: Upload binary to S3 bucket

@@ -8,7 +8,6 @@ api_start.sh
 api_test.sh
 package-lock.json
 src/config.json
-build/.FILES
 config/local*.*
 config/custom-environment-variables.*
 config/certs/*.pem
