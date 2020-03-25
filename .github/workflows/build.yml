@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - develop
+      - develop-*
       - build/*
 
 jobs:
@@ -23,19 +24,8 @@ jobs:
         with:
           node-version: '13.x'
 
-      - name: Get yarn cache directory path
-        run: echo ::set-env name=YARN_CACHE_DIR::$(yarn cache dir)
-      - name: "Cache: yarn"
-        uses: actions/cache@v1
-        with:
-          path: ${{ env.YARN_CACHE_DIR }}
-          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
-      - name: "Cache: node_modules"
-        uses: actions/cache@v1
-        with:
-          path: node_modules
-          key: nodemodules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - name: Install
+        uses: bahmutov/npm-install@v1
 
       - name: Get repository name, and branch name
         run: |
@@ -53,7 +43,7 @@ jobs:
 
       - name: Sync config JSON files
         run: rsync -r ./vue-storefront-workspace/template/${{ env.APP }}/ ./
-      
+
       - name: Install dependencies
         run: yarn
 
