@@ -19,7 +19,9 @@ This API extension get data from headless cms of choice.
          "fallbackLanguage": "de-de"
        },
        "storyblok": {
+         "spaceId": "XXXXX",
          "accessToken": "XXXXXXXXXXXXXXXXXXXXXXXX",
+         "defaultLanguageCodes": [ "default", "en" ],
          "pluginFieldMap": [
           { "key": "icmaa-single-option", "values": [ "selected" ] },
           { "key": "icmaa-multi-option", "values": [ "selected" ] },
