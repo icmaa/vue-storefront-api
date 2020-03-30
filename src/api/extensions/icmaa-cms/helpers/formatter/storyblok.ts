@@ -1,4 +1,5 @@
 import pick from 'lodash/pick'
+import forEach from 'lodash/forEach'
 import config from 'config'
 import StoryblokClient from 'storyblok-js-client'
 
@@ -39,5 +40,13 @@ export const extractStoryContent = (object) => {
       content[f] = object[f]
     }
   })
+
+  const regex = /^group_[\w]/
+  forEach(content, (v, k) => {
+    if (regex.exec(k) !== null) {
+      delete content[k]
+    }
+  })
+
   return content
 }
