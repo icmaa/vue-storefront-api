@@ -90,7 +90,8 @@ class StoryblokConnector {
   }
 
   public matchLanguage (lang) {
-    lang = lang && lang !== 'default' ? lang.toLowerCase() : false
+    const defaultLanguageCodes: string[] = config.get('extensions.icmaaCms.storyblok.defaultLanguageCodes')
+    lang = lang && !defaultLanguageCodes.includes(lang) ? lang.toLowerCase() : false
     this.lang = lang && config.get('icmaa.mandant') ? `${config.get('icmaa.mandant')}_${lang}` : lang
     return this.lang
   }
