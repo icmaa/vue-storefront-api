@@ -4,8 +4,7 @@ import { Router } from 'express'
 import Axios from 'axios'
 
 module.exports = ({ config }) => {
-
-	let api = Router()
+  let api = Router()
 
   api.get('/related-artists/:name', async (req, res) => {
     const { name } = req.params
@@ -22,10 +21,10 @@ module.exports = ({ config }) => {
       params: { grant_type: 'client_credentials' },
       auth: { username, password }
     })
-    .then(response => response.data.access_token)
-    .catch(() => {
-      return apiStatus(res, `Couldn't fetch access-token`, 400)
-    })
+      .then(response => response.data.access_token)
+      .catch(() => {
+        return apiStatus(res, `Couldn't fetch access-token`, 400)
+      })
 
     const apiUrl = 'https://api.spotify.com/v1'
     const artistId = await Axios.get(apiUrl + '/search', {

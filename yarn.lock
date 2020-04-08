@@ -6247,9 +6247,9 @@ stealthy-require@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.1.1.tgz#35b09875b4ff49f26a777e509b3090a3226bf24b"
 
-"storefront-query-builder@git+https://github.com/icmaa/storefront-query-builder#feature/add-stock-filter-for-configurable-products":
+"storefront-query-builder@git+https://github.com/icmaa/storefront-query-builder#customized":
   version "0.0.9"
-  resolved "git+https://github.com/icmaa/storefront-query-builder#04bf3dd3bd28ddfc1f6b52a3176cffd85041f2c9"
+  resolved "git+https://github.com/icmaa/storefront-query-builder#c15cb68c8878dd989c8c3bfd5cab9512710dc53f"
   dependencies:
     clone-deep "^4.0.1"
 
