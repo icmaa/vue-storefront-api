@@ -23,19 +23,6 @@ This is the list of custom filters we use:
          }
       }
    }
-1. Add our import helper to `src/api/catalog.ts` like
-   ```
-   import loadCustomFilters from './extensions/icmaa-catalog/helpers/loadCustomFilters'
-   ```
-1. And at the line where the `search-query` type is generated, add our `loadCustomFilters` method:
-   ```js
-   if (req.query.request_format === 'search-query') { // search query and not Elastic DSL - we need to translate it
-     const customFilters = await loadCustomFilters(config)
-     requestBody = await elasticsearch.buildQueryBodyFromSearchQuery({ config, queryChain: bodybuilder(), searchQuery: new SearchQuery(requestBody), customFilters })
-   }
-   ´´´
-
-> The last two points are obsolete once this feature is offically included in the `vue-storefront-api` (PR is already open).
 
 ## API endpoints
 ```
