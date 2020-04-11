@@ -30,6 +30,7 @@ function _outputFormatter (responseBody, format = 'standard') {
     if (responseBody.hits) {
       delete responseBody.hits.max_score
       responseBody.total = responseBody.hits.total
+      console.log(responseBody.hits)
       responseBody.hits = responseBody.hits.hits.map(hit => {
         return Object.assign(hit._source, { _score: hit._score })
       })
@@ -176,7 +177,7 @@ export default ({config, db}) => async function (req, res, body) {
           res.setHeader('X-VS-Cache-Tag', tagsHeader)
           delete output.tags
         }
-        res.json(_outputFormatter(output, responseFormat));
+        res.json(output)
         console.log(`cache hit [${req.url}], cached request: ${Date.now() - s}ms`)
       } else {
         res.setHeader('X-VS-Cache', 'Miss')
