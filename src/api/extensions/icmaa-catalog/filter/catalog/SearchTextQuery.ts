@@ -37,6 +37,13 @@ const filter: FilterInterface = {
       this.queryChain.query('bool', newQueryChain)
     }
 
+    // Add category-aggregation using `nested` and `top-hits` to get all possible categories in results for category filter
+    this.queryChain.agg('nested', { path: 'category' }, 'categories_found', b => {
+      return b.agg('terms', 'category.category_id', {}, 'categories', c => {
+        return c.agg('top_hits', { _source: [ 'category.name', 'category.category_id', 'category.position' ], size: 1 }, 'hits')
+      })
+    })
+
     return this.queryChain
   },
   mutator: (value) => Object.values(value)[0][0]
