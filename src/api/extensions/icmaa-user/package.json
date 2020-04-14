@@ -1,0 +1,8 @@
+{
+  "name": "icmaa-user",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "author": "cewald <c.ewald@impericon.com> and contributors",
+  "license": "MIT",
+  "private": true
+}
