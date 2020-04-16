@@ -20,6 +20,10 @@ export const extractPluginValues = (object) => {
         }
       } else if (v.type === 'doc') {
         object[key] = new StoryblokClient({}).richTextResolver.render(object[key])
+      } else if (Array.isArray(v) && v.some(c => c.hasOwnProperty('_uid'))) {
+        for (let subObjectIndex in v.filter(c => c.hasOwnProperty('_uid'))) {
+          v[subObjectIndex] = extractPluginValues(v[subObjectIndex])
+        }
       }
     }
   }

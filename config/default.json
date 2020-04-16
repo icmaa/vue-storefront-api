@@ -56,17 +56,7 @@
       "max_boost": 100,
       "function_min_score": 1
     },
-    "searchableAttributes": {
-      "name": {
-        "boost": 4
-      },
-      "sku": {
-        "boost": 2
-      },
-      "category.name": {
-        "boost": 1
-      }
-    }
+    "searchableAttributes": {}
   },
   "products": {
     "fieldsToCompress": ["max_regular_price", "max_price", "max_regular_price", "minimal_regular_price", "final_price", "price", "special_price", "original_final_price", "original_price", "original_special_price", "final_price_incl_tax", "price_incl_tax", "special_price_incl_tax", "final_price_tax", "price_tax", "special_price_tax", "image", "small_image", "thumbnail"],
