@@ -6312,10 +6312,10 @@ stealthy-require@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.1.1.tgz#35b09875b4ff49f26a777e509b3090a3226bf24b"
 
-storefront-query-builder@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/storefront-query-builder/-/storefront-query-builder-1.0.0.tgz#8bab0b6bd61a574dfa913cad5c2fdd17858f8b07"
-  integrity sha512-j0JhHOYhcfDcsBUMYWVJ0UApQDOem5zo20XikxJcxfFEcM5Et1Z16674wx3++KrWCbU5raEMgHvqEPxkDFajdw==
+"storefront-query-builder@npm:@icmaa/storefront-query-builder@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@icmaa/storefront-query-builder/-/storefront-query-builder-1.0.1.tgz#a40f2e5dda89097cde449335420e3b785f4b5bc0"
+  integrity sha512-NJyhEGsw0FSCCXFwWWqs6MLCZnUFRlgfqw9Q5TNfe/7VNh6X+WUodIfLcs0k2oJB2K8af7RzAPnKvbg3KS7zXw==
   dependencies:
     "@typescript-eslint/parser" "^2.26.0"
     clone-deep "^4.0.1"
