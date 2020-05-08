@@ -7,9 +7,9 @@ module.exports = ({ config }) => {
 
   const urlPrefix = 'newsletter/'
 
-  const subscribeAction = async (req, res) => {
-    const client = newMagentoClientAction('newsletter', 'subscribe', urlPrefix, config, req)
-    client.newsletter.subscribe(req.body)
+  const action = (endpoint = 'subscribe') => async (req, res) => {
+    const client = newMagentoClientAction('newsletter', endpoint, urlPrefix, config, req)
+    client.newsletter[endpoint](req.body)
       .then((result) => {
         apiStatus(res, result, 200)
       }).catch(err => {
@@ -17,8 +17,11 @@ module.exports = ({ config }) => {
       })
   }
 
-  api.post('/subscribe', subscribeAction)
-  api.delete('/subscribe', subscribeAction)
+  api.post('/subscribe', action())
+  api.delete('/subscribe', action())
+
+  api.post('/voucher', action('voucher'))
+  api.post('/birthday-voucher', action('birthdayvoucher'))
 
   return api
 }
