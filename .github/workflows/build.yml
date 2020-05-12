@@ -38,11 +38,11 @@ jobs:
 
       - name: Checkout "icmaa/shop-workspace" repo
         run: |
-          rm -rf icmaa/shop-workspace
+          rm -rf shop-workspace
           git clone --no-tags --depth 1 https://${{ secrets.GITHUB_PAT }}@github.com/icmaa/shop-workspace
 
       - name: Sync config JSON files
-        run: rsync -r ./icmaa/shop-workspace/template/${{ env.APP }}/ ./
+        run: rsync -r ./shop-workspace/template/${{ env.APP }}/ ./
 
       - name: Install dependencies
         run: yarn
