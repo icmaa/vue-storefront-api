@@ -36,13 +36,13 @@ jobs:
         run: |
           echo ::set-env name=ENV::$(if [ ${{ env.BRANCH_NAME }} = "master" ]; then echo "production"; else echo "test"; fi)
 
-      - name: Checkout "icmaa/vue-storefront-workspace" repo
+      - name: Checkout "icmaa/shop-workspace" repo
         run: |
-          rm -rf vue-storefront-workspace
-          git clone --no-tags --depth 1 https://${{ secrets.GITHUB_PAT }}@github.com/icmaa/vue-storefront-workspace
+          rm -rf icmaa/shop-workspace
+          git clone --no-tags --depth 1 https://${{ secrets.GITHUB_PAT }}@github.com/icmaa/shop-workspace
 
       - name: Sync config JSON files
-        run: rsync -r ./vue-storefront-workspace/template/${{ env.APP }}/ ./
+        run: rsync -r ./icmaa/shop-workspace/template/${{ env.APP }}/ ./
 
       - name: Install dependencies
         run: yarn
