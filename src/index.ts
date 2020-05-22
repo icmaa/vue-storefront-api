@@ -16,7 +16,7 @@ import typeDefs from './graphql/schema';
 import * as path from 'path'
 
 // add custom datadog tracer
-import 'icmaa-monitoring/datadog/dd-trace'
+import 'icmaa-monitoring/build/datadog/dd-trace'
 
 const app = express();
 
