@@ -115,7 +115,7 @@ const map = ({ config }) => {
       }
     } catch (err) {
       console.error(err)
-      return apiStatus(res, new Error('ES search error'), 500)
+      return apiStatus(res, err.message, 500)
     }
   })
 
