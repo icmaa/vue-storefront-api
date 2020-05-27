@@ -19,13 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update to `storefront-query-builder` version `1.0.0` - @cewald (#429)
 - Add `composeError` in './magento2/o2m.js' - @flancer64 (#422)
 - Explicit data extraction from 'Error' objects - @flancer64 (#424)
+- Merge scripts: db7 => db, elastic7=>elastic and add support for es7 in yarn mage2vs import - @gibkigonzo (#436)
 
 ### Fixed
 - add es7 support for map url module and fixed default index for es config - @gibkigonzo
 - Add correct paths for production build - @cewald (#407)
 - Fix MSI default stock id value
 - Add outputFormatter to response from cache - @gibkigonzo (#428)
-
+- disable showing stack for invalid requests - @gibkigonzo (#431)
+- Improve `_outputFormatter` on cache catalog-response to prevent exception - @cewald (#432)
+- use ts for compiling additional scripts - @gibkigonzo (#437)
+- Bugfix for wrong JSON scheme url's and hostname resolution for `magento1` platform - @cewald (#443)
+- check if headers has been already sent in image middleware - @gibkigonzo (#434)
 
 ## [1.11.1] - 2020.03.17
 

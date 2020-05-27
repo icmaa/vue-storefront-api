@@ -1,0 +1,16 @@
+{
+  "name": "icmaa-monitoring",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "author": "cewald <c.ewald@impericon.com> and contributors",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "dd-trace": "^0.20.3",
+    "express-winston": "^4.0.3",
+    "winston": "^3.2.1"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}
