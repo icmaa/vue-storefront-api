@@ -24,7 +24,7 @@ const app = express();
 app.use(morgan('dev'));
 
 // add custom request logger
-app.use(require('icmaa-monitoring')({ config }));
+app.use(require('icmaa-monitoring')({ config }))
 
 app.use('/media', express.static(path.join(__dirname, config.get(`${config.get('platform')}.assetPath`))))
 
