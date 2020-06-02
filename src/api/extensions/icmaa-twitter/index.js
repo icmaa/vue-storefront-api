@@ -22,18 +22,18 @@ module.exports = ({ config }) => {
       })
 
     const apiUrl = 'https://api.twitter.com/1.1'
-    const items = await Axios.get(apiUrl + '/statuses/user_timeline.json', {
+    return Axios.get(apiUrl + '/statuses/user_timeline.json', {
       headers: { 'Authorization': `Bearer ${accessToken}` },
       params: { screen_name: name, count: count || 5 }
     }).then(response => {
       if (response.data.length > 0) {
-        return response.data
+        return apiStatus(res, { items: response.data }, 200)
       }
 
       return apiStatus(res, `User not found`, 400)
+    }).catch(err => {
+      return apiStatus(res, err.response.data, 400)
     })
-
-    return apiStatus(res, { items }, 200)
   })
 
   return api
