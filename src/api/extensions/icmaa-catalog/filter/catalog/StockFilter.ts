@@ -17,11 +17,14 @@ const filter: FilterInterface = {
 
       // configurable products
       nestedQuery.orFilter('bool', confQuery => {
+        confQuery.filter('term', 'type_id', 'configurable')
+
         if (hasStockFilter) {
           confQuery.filter('term', 'stock.is_in_stock', true)
         }
 
         let confChildQuery = this.bodybuilder()
+
         if (hasConfOptions) {
           confOptionsFilters.forEach(f => {
             const filter = {
@@ -46,8 +49,50 @@ const filter: FilterInterface = {
           .filter('nested', { path: 'configurable_children', ...confChildQuery.build() })
       })
 
+      // bundled products
+      nestedQuery.orFilter('bool', bndlQuery => {
+        bndlQuery.filter('term', 'type_id', 'bundle')
+
+        if (hasStockFilter) {
+          bndlQuery.filter('term', 'stock.is_in_stock', true)
+        }
+
+        let bndlOptionsQuery = this.bodybuilder()
+
+        if (hasConfOptions || hasStockFilter) {
+          bndlOptionsQuery.query('nested', { path: 'bundle_options.product_links' }, productLinksQuery => {
+            if (hasStockFilter) {
+              const options = { path: 'bundle_options.product_links.stock' }
+              productLinksQuery.query('nested', options, productLinksStockQuery => {
+                return productLinksStockQuery.query('term', 'bundle_options.product_links.stock.is_in_stock', true)
+                  .query('range', 'bundle_options.product_links.stock.qty', { 'gt': 0 })
+              })
+            }
+
+            if (hasConfOptions) {
+              confOptionsFilters.forEach(f => {
+                const filter = {
+                  attribute: 'bundle_options.product_links.' + f.attribute,
+                  value: f.value,
+                  scope: f.scope
+                }
+
+                productLinksQuery = this.catalogFilterBuilder(productLinksQuery, filter, undefined, 'query')
+              })
+            }
+
+            return productLinksQuery
+          })
+        }
+
+        return bndlQuery
+          .filter('nested', { path: 'bundle_options', ...bndlOptionsQuery.build() })
+      })
+
       // simple products
       nestedQuery.orFilter('bool', smplQuery => {
+        smplQuery.filter('term', 'type_id', 'simple')
+
         if (hasConfOptions) {
           confOptionsFilters.forEach(f => {
             smplQuery = this.catalogFilterBuilder(smplQuery, f, this.optionsSuffix)
@@ -61,7 +106,6 @@ const filter: FilterInterface = {
         }
 
         return smplQuery
-          .notFilter('term', 'type_id', 'configurable')
       })
 
       return nestedQuery
