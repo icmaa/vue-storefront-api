@@ -119,7 +119,8 @@ async function list (attributesParam: AttributeListParam, config, indexName: str
     const query = adjustQuery({
       index: indexName,
       type: 'attribute',
-      body: bodybuilder().filter('terms', 'attribute_code', attributeCodes).build()
+      body: bodybuilder().filter('terms', 'attribute_code', attributeCodes).build(),
+      size: 1000
     }, 'attribute', config)
     const response = await getElasticClient(config).search(query)
     const fetchedAttributeList = get(response.body, 'hits.hits', []).map(hit => hit._source)
@@ -159,6 +160,7 @@ function transformToMetadata ({
   is_comparable,
   attribute_code,
   slug,
+  position,
   options = []
 }) {
   return {
@@ -172,6 +174,7 @@ function transformToMetadata ({
     is_comparable,
     attribute_code,
     slug,
+    position,
     options
   }
 }
