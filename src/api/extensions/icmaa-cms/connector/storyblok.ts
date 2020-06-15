@@ -1,8 +1,7 @@
 import config from 'config'
 
 import qs from 'qs'
-import { get as http2get } from 'http2-client'
-import zlib from 'zlib'
+import fetch from 'node-fetch'
 import cache from '../../../../lib/cache-instance'
 
 import { objectKeysToCamelCase } from '../helpers/formatter'
@@ -28,41 +27,18 @@ class StoryblokConnector {
           { encodeValuesOnly: true, arrayFormat: 'brackets' }
         )
 
-        const headers = {
-          'Accept-Encoding': 'gzip, deflate'
-        }
-
-        return new Promise((resolve, reject) => {
-          let data = ''
-          http2get(
-            `${baseUrl}/${endpoint}${querystring}`,
-            { headers },
-            response => {
-              // Storyblok is using gzip on its request, so it isn't complete without uncompressing it.
-              // The following block minds about the decompression using `zlib` of node.
-              // We could do this much simpler using `request`, `axios` or `fetch` but they won't support HTTP2.
-              var output
-              if (response.headers['content-encoding'] === 'gzip') {
-                var gzip = zlib.createGunzip()
-                response.pipe(gzip)
-                output = gzip
-              } else {
-                output = response
-              }
-
-              output
-                .on('error', err => reject(err.message))
-                .on('data', chunk => { data += chunk })
-                .on('end', () => {
-                  if (![200, 201, 301].includes(response.statusCode)) {
-                    console.log(JSON.parse(data).error)
-                    reject(JSON.parse(data).error)
-                  } else {
-                    resolve(JSON.parse(data))
-                  }
-                })
-            })
-        })
+        return fetch(`${baseUrl}/${endpoint}${querystring}`)
+          .then(async (response) => {
+            const data = await response.json()
+            if (response.status !== 401) {
+              return data
+            }
+            throw Error(data.error)
+          })
+          .catch(error => {
+            console.error('Error during storyblok fetch:', error)
+            return {}
+          })
       },
       cv: async (): Promise<string> => {
         const cacheKey = 'storyblokCacheVersion'
@@ -82,7 +58,7 @@ class StoryblokConnector {
                 .then(() => cv)
             })
         }).catch(e => {
-          console.log('Error during storyblok CV fetch:', e)
+          console.error('Error during storyblok CV fetch:', e)
           return Date.now().toString()
         })
       }
