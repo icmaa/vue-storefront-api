@@ -57,6 +57,24 @@ function adjustBackendProxyUrl (req, indexName, entityType, config) {
   return url
 }
 
+function adjustQueryParams (query, config) {
+  if (parseInt(config.elasticsearch.apiVersion) < 6) { // legacy for ES 5
+    delete query.request
+    delete query.request_format
+    delete query.response_format
+  } else {
+    query._source_includes = query._source_include
+    query._source_excludes = query._source_exclude
+    delete query._source_exclude
+    delete query._source_include
+    delete query.request
+    delete query.request_format
+    delete query.response_format
+  }
+
+  return query
+}
+
 function adjustQuery (esQuery, entityType, config) {
   if (parseInt(config.elasticsearch.apiVersion) < 6) {
     esQuery.type = entityType
@@ -271,6 +289,7 @@ module.exports = {
   reIndex,
   search,
   adjustQuery,
+  adjustQueryParams,
   adjustBackendProxyUrl,
   getClient,
   getHits,
