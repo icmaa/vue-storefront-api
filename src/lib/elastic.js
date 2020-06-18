@@ -74,8 +74,15 @@ function getHits (result) {
 }
 
 function getClient (config) {
-  let { host, port, protocol, apiVersion, requestTimeout } = config.elasticsearch
-  const node = `${protocol}://${host}:${port}`
+  let { host, port, protocol, apiVersion, requestTimeout, pingTimeout } = config.elasticsearch
+
+  let nodes = []
+  let hosts = typeof host === 'string' ? host.split(',') : host
+
+  hosts.forEach(host => {
+    const node = `${protocol}://${host}:${port}`
+    nodes.push(node)
+  })
 
   let auth
   if (config.elasticsearch.user) {
@@ -83,7 +90,7 @@ function getClient (config) {
     auth = { username: user, password }
   }
 
-  return new es.Client({ node, auth, apiVersion, requestTimeout })
+  return new es.Client({ nodes, auth, apiVersion, requestTimeout, pingTimeout })
 }
 
 function putAlias (db, originalName, aliasName, next) {
