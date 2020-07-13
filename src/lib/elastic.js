@@ -49,6 +49,10 @@ function adjustBackendProxyUrl (req, indexName, entityType, config) {
     delete parsedQuery.request
     delete parsedQuery.request_format
     delete parsedQuery.response_format
+    if (config.elasticsearch.cacheRequest) {
+      parsedQuery.request_cache = !!config.elasticsearch.cacheRequest
+    }
+
     url = config.elasticsearch.host + ':' + config.elasticsearch.port + '/' + adjustIndexName(indexName, entityType, config) + '/_search?' + queryString.stringify(parsedQuery)
   }
   if (!url.startsWith('http')) {
@@ -84,13 +88,14 @@ function adjustQuery (esQuery, entityType, config) {
 }
 
 function getHits (result) {
-  if (result.body) { // differences between ES5 andd ES7
+  if (result.body) { // differences between ES5 and ES7
     return result.body.hits.hits
   } else {
     return result.hits.hits
   }
 }
 
+let esClient = null
 function getClient (config) {
   let { host, port, protocol, apiVersion, requestTimeout, pingTimeout } = config.elasticsearch
 
@@ -108,7 +113,11 @@ function getClient (config) {
     auth = { username: user, password }
   }
 
-  return new es.Client({ nodes, auth, apiVersion, requestTimeout, pingTimeout })
+  if (!esClient) {
+    esClient = new es.Client({ nodes, auth, apiVersion, requestTimeout, pingTimeout })
+  }
+
+  return esClient
 }
 
 function putAlias (db, originalName, aliasName, next) {
