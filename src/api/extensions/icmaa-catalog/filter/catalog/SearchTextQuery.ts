@@ -1,7 +1,25 @@
 import { FilterInterface } from 'storefront-query-builder'
+import { set, forEach } from 'lodash'
 import getMultiMatchConfig from 'storefront-query-builder/lib/elasticsearch/multimatch'
 import getBoosts from 'storefront-query-builder/lib/elasticsearch/boost'
 import getFunctionScores from 'storefront-query-builder/lib/elasticsearch/score'
+
+const getMultimatchQuery = (queryChain: any, searchableFields: any, multiMatchConfig: any, nested?: string): any => {
+  let fields = []
+  forEach(searchableFields, (value, path) => {
+    if (typeof value === 'number') {
+      fields.push((nested ? nested + '.' : '') + path + '^' + value)
+    } else if (typeof value === 'object') {
+      queryChain.orQuery('nested', { path }, b => getMultimatchQuery(b, searchableFields[path], multiMatchConfig, nested ? nested + '.' + path : path))
+    }
+  })
+
+  if (fields.length > 0) {
+    queryChain.orQuery('multi_match', 'fields', fields, multiMatchConfig)
+  }
+
+  return queryChain
+}
 
 const filter: FilterInterface = {
   priority: 1,
@@ -16,19 +34,20 @@ const filter: FilterInterface = {
       return queryChain
     }
 
-    let searchableFields = []
+    let newQueryChain = this.bodybuilder()
+
     let searchableAttributes = this.config.elasticsearch.hasOwnProperty('searchableAttributes')
       ? this.config.elasticsearch.searchableAttributes : { 'name': { 'boost': 1 } }
+
+    let searchableFields: any = {}
     for (const attribute of Object.keys(searchableAttributes)) {
-      searchableFields.push(attribute + '^' + getBoosts(this.config, attribute))
+      set(searchableFields, attribute, getBoosts(this.config, attribute))
     }
 
-    const newQueryChain = this.bodybuilder()
-      .orQuery('nested', { path: 'category' }, b => b.query('multi_match', 'fields', searchableFields, getMultiMatchConfig(this.config, value)))
-      .orQuery('bool', b => b.orQuery('terms', 'configurable_children.sku', value.split('-'))
-        .orQuery('match_phrase', 'sku', { query: value, boost: 1 })
-        .orQuery('match_phrase', 'configurable_children.sku', { query: value, boost: 1 })
-      )
+    const multiMatchConfig = getMultiMatchConfig(this.config, value)
+    newQueryChain = getMultimatchQuery(newQueryChain, searchableFields, multiMatchConfig)
+
+    newQueryChain.orQuery('match_phrase', 'sku', { query: value, boost: 1 })
 
     let functionScore = getFunctionScores(this.config)
     if (functionScore) {
