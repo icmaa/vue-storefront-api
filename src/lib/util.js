@@ -86,14 +86,14 @@ export function apiStatus (res, result = 'OK', code = 200, meta = null) {
  *  @return {json} [result='OK']    Text message or result information object
  */
 export function apiError (res, error) {
-  let errorCode = error.code || error.status || 500;
+  let errorCode = error.code || error.status;
   let errorMessage = error.errorMessage || error;
   if (error instanceof Error) {
     // Class 'Error' is not serializable with JSON.stringify, extract data explicitly.
     errorCode = error.code || errorCode;
     errorMessage = error.message;
   }
-  return apiStatus(res, errorMessage, errorCode);
+  return apiStatus(res, errorMessage, Number(errorCode) || 500);
 }
 
 export function encryptToken (textToken, secret) {
@@ -108,4 +108,10 @@ export function decryptToken (textToken, secret) {
   let dec = decipher.update(textToken, 'hex', 'utf8')
   dec += decipher.final('utf8');
   return dec;
+}
+
+export function getToken (req) {
+  return config.users.tokenInHeader
+    ? (req.headers.authorization || '').replace('Bearer ', '')
+    : req.query.token
 }

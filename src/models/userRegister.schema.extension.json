@@ -1,22 +1,28 @@
 {
-  "properties": {
-      "customer": {
-          "required": [
-              "gender",
-              "dob"
+  "properties":{
+    "customer":{
+      "required":[
+        "gender",
+        "dob"
+      ],
+      "properties":{
+        "gender":{
+          "type":[
+            "number",
+            "string"
           ],
-          "properties": {
-              "gender": {
-                  "type": ["number","string"],
-                  "pattern": "[a-zA-Z0-9]+"
-              },
-              "dob": {
-                  "type": ["null","string"]
-              },
-              "newsletter": {
-                  "type": "boolean"
-              }
-          }    
+          "pattern":"[a-zA-Z0-9]+"
+        },
+        "dob":{
+          "type":[
+            "null",
+            "string"
+          ]
+        },
+        "newsletter":{
+          "type":"boolean"
+        }
       }
+    }
   }
 }
