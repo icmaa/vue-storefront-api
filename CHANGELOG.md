@@ -4,8 +4,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.3] - 2020.07.23
 
-## [1.12.0-rc1] - UNRELEASED
+### Fixed
+
+- Bump version for `vsf-utilities` - @gibkigonzo (#495)
+
+
+## [1.12.2] - 2020.07.20
+
+### Added
+
+- Added validation for user profile update. - @gibkigonzo (#488) - **Breaking change!** - from this change you can't send anything when you update user data. You can only send what is specified in `src/models/userProfileUpdate.schema.json`. If you still want to send anything then change `"additionalProperties": false,` to `true`.
+- add `getToken` to handle getting token from header - @gibkigonzo (#488)
+- Allow filter elasticsearch request for security reasons - @seSze (#476)
+
+### Fixed
+
+- Fix default value for `maxAgeForResponse` - @lauraseidler (#485)
+- Adds `vsf-utlilities`. Use productEquals to compare products in o2m - @gibkigonzo (#477)
+
+## [1.12.1] - 2020.06.22
+
+### Added
+
+- Add request_cache to ES url - @gibkigonzo (#387)
+
+### Fixed
+
+- Add error status code as number in `apiError` - @gibkigonzo (#442)
+- Get proper tax calculation for multistore - @didkan (#464)
+- Create only one ES client instance per app - @gibkigonzo (#393)
+
+## [1.12.0] - 2020.06.01
 
 ### Added
 - Add url module - @gibkigonzo (#3942)
@@ -31,6 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - use ts for compiling additional scripts - @gibkigonzo (#437)
 - Bugfix for wrong JSON scheme url's and hostname resolution for `magento1` platform - @cewald (#443)
 - check if headers has been already sent in image middleware - @gibkigonzo (#434)
+- Missing packages in Docker Makefile (make, python and g++) - @proxiblue (#448)
+- change path in ecosystem for o2m - @gibkigonzo (#434)
+- udpate typings for query params - @gibkigonzo (#446)
 
 ## [1.11.1] - 2020.03.17
 

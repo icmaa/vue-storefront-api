@@ -1,5 +1,5 @@
 import AbstractTaxProxy from '../abstract/tax'
-import { calculateProductTax, checkIfTaxWithUserGroupIsActive, getUserGroupIdToUse } from '../../lib/taxcalc'
+import { calculateProductTax, checkIfTaxWithUserGroupIsActive, getUserGroupIdToUse } from 'vsf-utilities'
 import TierHelper from '../../helpers/priceTiers'
 import bodybuilder from 'bodybuilder'
 import es from '../../lib/elastic'
@@ -39,10 +39,10 @@ class TaxProxy extends AbstractTaxProxy {
         taxCountry = this._config.tax.defaultCountry
       }
     }
-    if (sourcePriceInclTax === null) {
+    if (sourcePriceInclTax == null) {
       sourcePriceInclTax = this._config.tax.sourcePriceIncludesTax
     }
-    if (finalPriceInclTax === null) {
+    if (finalPriceInclTax == null) {
       finalPriceInclTax = this._config.tax.finalPriceIncludesTax
     }
     this._deprecatedPriceFieldsSupport = this._config.tax.deprecatedPriceFieldsSupport

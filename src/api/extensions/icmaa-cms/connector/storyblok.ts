@@ -115,7 +115,7 @@ class StoryblokConnector {
           return { }
         })
     } catch (error) {
-      return error
+      throw error
     }
   }
 
@@ -129,7 +129,7 @@ class StoryblokConnector {
       this.matchLanguage(lang)
       return this.searchRequest({ queryObject, type, page: 1, fields })
     } catch (error) {
-      return error
+      throw error
     }
   }
 
