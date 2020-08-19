@@ -7,8 +7,10 @@
   "private": true,
   "dependencies": {
     "@types/qs": "^6.9.1",
+    "marked": "^1.1.1",
     "node-fetch": "^2.6.0",
     "qs": "^6.9.1",
-    "storyblok-js-client": "^2.0.0"
+    "storyblok-js-client": "^2.0.0",
+    "yaml": "^1.10.0"
   }
 }
