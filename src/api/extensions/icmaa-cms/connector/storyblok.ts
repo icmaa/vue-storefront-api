@@ -103,13 +103,13 @@ class StoryblokConnector {
       }
 
       return request
-        .then(response => {
+        .then(async response => {
           const story = fetchById
             ? response.story || {}
             : response.stories.shift() || {}
           const content = extractStoryContent(story)
           objectKeysToCamelCase(content)
-          extractPluginValues(content)
+          await extractPluginValues(content)
           return content
         }).catch(() => {
           return { }
@@ -142,11 +142,14 @@ class StoryblokConnector {
         'component': { 'in': type },
         ...queryObject
       }
-    }).then(response => {
+    }).then(async response => {
       let stories = response.stories
         .map(story => extractStoryContent(story))
         .map(story => objectKeysToCamelCase(story))
-        .map(story => extractPluginValues(story))
+
+      stories = await Promise.all(
+        stories.map(story => extractPluginValues(story))
+      )
 
       if (fields && fields.length > 0) {
         stories = stories.map(story => pick(story, fields.split(',')))

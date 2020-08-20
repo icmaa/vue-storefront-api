@@ -8,7 +8,7 @@ const metaFieldsToTransport = [{'id': 'story_id'}, {'name': 'uname'}, 'uuid', 'p
 
 const getFieldMap = (key) => pluginMap.find(m => m.key === key)
 
-export const extractPluginValues = (object) => {
+export const extractPluginValues = async (object) => {
   for (let key in object) {
     let v = object[key]
     if (typeof v === 'object') {
@@ -17,14 +17,25 @@ export const extractPluginValues = (object) => {
         if (map) {
           const values = pick(v, map.values)
           object[key] = map.values.length === 1 ? Object.values(values)[0] : values
+          if (v.plugin === 'icmaa-syntax-highlighter') {
+            if (v.language === 'yaml') {
+              object[key] = JSON.stringify(
+                await import('yaml').then(m => m.default.parse(object[key]))
+              )
+            }
+          }
         }
       } else if (v.type === 'doc') {
         object[key] = new StoryblokClient({}).richTextResolver.render(object[key])
       } else if (Array.isArray(v) && v.some(c => c.hasOwnProperty('_uid'))) {
         for (let subObjectIndex in v.filter(c => c.hasOwnProperty('_uid'))) {
-          v[subObjectIndex] = extractPluginValues(v[subObjectIndex])
+          v[subObjectIndex] = await extractPluginValues(v[subObjectIndex])
         }
       }
+    }
+
+    if (/(rte|markdown)$/.test(key)) {
+      object[key] = await import('marked').then(m => m.default(object[key]))
     }
   }
 
