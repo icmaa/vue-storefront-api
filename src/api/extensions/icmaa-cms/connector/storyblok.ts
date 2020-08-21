@@ -74,10 +74,20 @@ class StoryblokConnector {
 
   public isJsonString (string) {
     try {
-      return JSON.parse(string)
+      const query = JSON.parse(string)
+      const jsonObject: Record<string, any> = {}
+      Object.keys(query).forEach((key) => {
+        jsonObject[this.getKey(key)] = query[key]
+      })
+
+      return jsonObject
     } catch (e) {
       return false
     }
+  }
+
+  public getKey (key: string = 'identifier'): string {
+    return (key.startsWith('i18n_')) ? key.slice(5) + '__i18n__' + this.lang : key
   }
 
   public async fetch ({ type, uid, lang, key }) {
@@ -92,7 +102,7 @@ class StoryblokConnector {
           'starts_with': this.lang ? `${this.lang}/*` : '',
           'filter_query': {
             'component': { 'in': type },
-            [key || 'identifier']: { 'in': uid }
+            [this.getKey(key)]: { 'in': uid }
           }
         })
       } else {
@@ -120,13 +130,14 @@ class StoryblokConnector {
   }
 
   public async search ({ type, q, lang, fields }) {
-    let queryObject = { 'identifier': { 'in': q } }
+    this.matchLanguage(lang)
+
+    let queryObject: any = { 'identifier': { 'in': q } }
     if (this.isJsonString(q)) {
       queryObject = this.isJsonString(q)
     }
 
     try {
-      this.matchLanguage(lang)
       return this.searchRequest({ queryObject, type, page: 1, fields })
     } catch (error) {
       throw error
