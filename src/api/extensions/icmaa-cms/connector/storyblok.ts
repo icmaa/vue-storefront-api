@@ -74,13 +74,19 @@ class StoryblokConnector {
 
   public isJsonString (string) {
     try {
-      const query = JSON.parse(string)
-      const jsonObject: Record<string, any> = {}
-      Object.keys(query).forEach((key) => {
-        jsonObject[this.getKey(key)] = query[key]
-      })
+      let query = JSON.parse(string)
+      for (const key in query) {
+        if (key.startsWith('i18n_')) {
+          query['__or'] = [
+            { [this.getKey(key)]: query[key] },
+            { [key.slice(5)]: query[key] }
+          ]
 
-      return jsonObject
+          delete query[key]
+        }
+      }
+
+      return query
     } catch (e) {
       return false
     }
@@ -98,11 +104,21 @@ class StoryblokConnector {
       this.matchLanguage(lang)
 
       if (!fetchById) {
+        let query: any = { [this.getKey(key)]: { 'in': uid } }
+        if (key && key.startsWith('i18n_')) {
+          query = {
+            '__or': [
+              { [this.getKey(key)]: { 'in': uid } },
+              { [key.slice(5)]: { 'in': uid } }
+            ]
+          }
+        }
+
         request = this.api().get('cdn/stories', {
           'starts_with': this.lang ? `${this.lang}/*` : '',
-          'filter_query': {
+          'filter_query_v2': {
             'component': { 'in': type },
-            [this.getKey(key)]: { 'in': uid }
+            ...query
           }
         })
       } else {
@@ -133,8 +149,9 @@ class StoryblokConnector {
     this.matchLanguage(lang)
 
     let queryObject: any = { 'identifier': { 'in': q } }
-    if (this.isJsonString(q)) {
-      queryObject = this.isJsonString(q)
+    const jsonQuery: any = this.isJsonString(q)
+    if (jsonQuery) {
+      queryObject = jsonQuery
     }
 
     try {
@@ -149,7 +166,7 @@ class StoryblokConnector {
       'page': page,
       'per_page': 25,
       'starts_with': this.lang ? `${this.lang}/*` : '',
-      'filter_query': {
+      'filter_query_v2': {
         'component': { 'in': type },
         ...queryObject
       }
