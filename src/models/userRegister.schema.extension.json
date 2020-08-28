@@ -1,26 +1,52 @@
 {
-  "properties":{
-    "customer":{
-      "required":[
+  "properties": {
+    "customer": {
+      "required": [
         "gender",
         "dob"
       ],
-      "properties":{
-        "gender":{
-          "type":[
+      "properties": {
+        "firstname": {
+          "type": "string",
+          "pattern": "",
+          "minLength": 3
+        },
+        "lastname": {
+          "type": "string",
+          "pattern": "",
+          "minLength": 3
+        },
+        "addresses": {
+          "items": {
+            "properties": {
+              "firstname": {
+                "type": "string",
+                "pattern": "",
+                "minLength": 3
+              },
+              "lastname": {
+                "type": "string",
+                "pattern": "",
+                "minLength": 3
+              }
+            }
+          }
+        },
+        "gender": {
+          "type": [
             "number",
             "string"
           ],
-          "pattern":"[a-zA-Z0-9]+"
+          "pattern": "[a-zA-Z0-9]+"
         },
-        "dob":{
-          "type":[
+        "dob": {
+          "type": [
             "null",
             "string"
           ]
         },
-        "newsletter":{
-          "type":"boolean"
+        "newsletter": {
+          "type": "boolean"
         }
       }
     }
