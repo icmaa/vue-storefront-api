@@ -29,6 +29,13 @@ function _outputFormatter (responseBody, format = 'standard') {
     if (responseBody.hits) {
       delete responseBody.hits.max_score
       responseBody.total = responseBody.hits.total
+      if (typeof responseBody.total === 'object') {
+        /**
+         * Support for ES7+ where the `total` now is an object
+         * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/breaking-changes-7.0.html
+         */
+        responseBody.total = responseBody.total.value
+      }
       responseBody.hits = responseBody.hits.hits.map(hit => {
         return Object.assign(hit._source, { _score: hit._score })
       })

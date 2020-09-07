@@ -6,6 +6,10 @@ import storyblokConnector from './connector/storyblok'
 import { cacheResult, cacheHandler } from './connector/cache'
 import { getClient as esClient } from '../../../lib/elastic'
 
+const isEmptyResponse = (body) => {
+  return typeof body.hits.total === 'object' ? body.hits.total.value === 0 : body.hits.total === 0
+}
+
 module.exports = ({ config }) => {
   let api = Router()
 
@@ -91,7 +95,7 @@ module.exports = ({ config }) => {
       }
     }).then(response => {
       const { body } = response
-      if (body.hits.total === 0) {
+      if (isEmptyResponse(body)) {
         return apiStatus(res, 'No attribute found', 400)
       }
 
@@ -129,7 +133,7 @@ module.exports = ({ config }) => {
       }
     }).then(response => {
       const { body } = response
-      if (body.hits.total === 0) {
+      if (isEmptyResponse(body)) {
         return apiStatus(res, 'No categories found', 400)
       }
 
