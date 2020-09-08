@@ -4,11 +4,7 @@ import { Router } from 'express'
 
 import storyblokConnector from './connector/storyblok'
 import { cacheResult, cacheHandler } from './connector/cache'
-import { getClient as esClient } from '../../../lib/elastic'
-
-const isEmptyResponse = (body) => {
-  return typeof body.hits.total === 'object' ? body.hits.total.value === 0 : body.hits.total === 0
-}
+import { getClient as esClient, adjustQueryParams, adjustQuery, getTotals, getHits } from '../../../lib/elastic'
 
 module.exports = ({ config }) => {
   let api = Router()
@@ -80,9 +76,13 @@ module.exports = ({ config }) => {
   })
 
   api.get('/attribute/:code', async (req, res) => {
-    return esClient(config).search({
+    const query = adjustQuery({
       index: config.elasticsearch.indices[0],
-      type: 'attribute',
+      method: req.method
+    }, 'attribute', config)
+
+    return esClient(config).search({
+      ...query,
       body: {
         '_source': ['attribute_code', 'id', 'options', 'frontend_label'],
         'query': {
@@ -95,11 +95,11 @@ module.exports = ({ config }) => {
       }
     }).then(response => {
       const { body } = response
-      if (isEmptyResponse(body)) {
+      if (getTotals(body) === 0) {
         return apiStatus(res, 'No attribute found', 400)
       }
 
-      const result = body.hits.hits[0]._source
+      const result = getHits(response)[0]._source
       if (result && result.options) {
         switch (req.query.style) {
           case 'storyblok':
@@ -116,10 +116,13 @@ module.exports = ({ config }) => {
   })
 
   api.get('/categories', async (req, res) => {
-    return esClient(config).search({
+    const query = adjustQuery({
       index: config.elasticsearch.indices[0],
-      type: 'category',
-      size: 5000,
+      size: 5000
+    }, 'category', config)
+
+    return esClient(config).search({
+      ...query,
       body: {
         '_source': ['id', 'url_path', 'slug', 'name'],
         'query': {
@@ -133,13 +136,15 @@ module.exports = ({ config }) => {
       }
     }).then(response => {
       const { body } = response
-      if (isEmptyResponse(body)) {
+      console.log(getTotals(body))
+      if (getTotals(body) === 0) {
         return apiStatus(res, 'No categories found', 400)
       }
 
-      if (body.hits.hits) {
+      const hits = getHits(response)
+      if (hits) {
         let results = []
-        body.hits.hits.forEach(category => {
+        hits.forEach(category => {
           results.push(category._source)
         })
 

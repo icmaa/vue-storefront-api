@@ -1,6 +1,6 @@
 import jwt from 'jwt-simple'
 import ProcessorFactory from '../processor/factory'
-import { getClient as esClient, adjustQuery, adjustQueryParams } from '../lib/elastic'
+import { getClient as esClient, adjustQuery, adjustQueryParams, getTotals } from '../lib/elastic'
 import cache from '../lib/cache-instance'
 import { sha3_224 } from 'js-sha3'
 import AttributeService from './attribute/service'
@@ -28,14 +28,7 @@ function _outputFormatter (responseBody, format = 'standard') {
     delete responseBody._shards
     if (responseBody.hits) {
       delete responseBody.hits.max_score
-      responseBody.total = responseBody.hits.total
-      if (typeof responseBody.total === 'object') {
-        /**
-         * Support for ES7+ where the `total` now is an object
-         * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/breaking-changes-7.0.html
-         */
-        responseBody.total = responseBody.total.value
-      }
+      responseBody.total = getTotals(responseBody)
       responseBody.hits = responseBody.hits.hits.map(hit => {
         return Object.assign(hit._source, { _score: hit._score })
       })
