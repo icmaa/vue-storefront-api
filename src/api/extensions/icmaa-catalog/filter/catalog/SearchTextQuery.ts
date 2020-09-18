@@ -1,21 +1,32 @@
 import { FilterInterface } from 'storefront-query-builder'
-import { set, forEach } from 'lodash'
+import { forEach, pick, omit } from 'lodash'
 import getMultiMatchConfig from 'storefront-query-builder/lib/elasticsearch/multimatch'
-import getBoosts from 'storefront-query-builder/lib/elasticsearch/boost'
 import getFunctionScores from 'storefront-query-builder/lib/elasticsearch/score'
 
-const getMultimatchQuery = (queryChain: any, searchableFields: any, multiMatchConfig: any, nested?: string): any => {
-  let fields = []
-  forEach(searchableFields, (value, path) => {
-    if (typeof value === 'number') {
-      fields.push((nested ? nested + '.' : '') + path + '^' + value)
-    } else if (typeof value === 'object') {
-      queryChain.orQuery('nested', { path }, b => getMultimatchQuery(b, searchableFields[path], multiMatchConfig, nested ? nested + '.' + path : path))
+interface MultiMatchItem {
+  operator: 'or'|'and',
+  [key: string]: { boost: number } | MultiMatchItem | any
+}
+
+const multiMatchConfigFields = ['operator', 'fuzziness', 'cutoff_frequency', 'max_expansions',
+  'prefix_length', 'minimum_should_match', 'tie_breaker', 'analyzer']
+
+const getMultimatchQuery = (queryChain: any, fields: MultiMatchItem, multiMatchConfig: any, nestedPath?: string): any => {
+  nestedPath = nestedPath ? nestedPath + '.' : ''
+  let readyFields = []
+  forEach(fields, (value, path) => {
+    if (value.hasOwnProperty('boost')) {
+      readyFields.push(nestedPath + path + '^' + value['boost'])
+    } else {
+      const nestedMultiMatchConfig = Object.assign({}, multiMatchConfig, pick(fields[path], multiMatchConfigFields))
+      queryChain.orQuery('nested', { path: nestedPath + path }, nestedQueryChain =>
+        getMultimatchQuery(nestedQueryChain, omit(fields[path], multiMatchConfigFields), nestedMultiMatchConfig, nestedPath + path)
+      )
     }
   })
 
-  if (fields.length > 0) {
-    queryChain.orQuery('multi_match', 'fields', fields, multiMatchConfig)
+  if (readyFields.length > 0) {
+    queryChain.orQuery('multi_match', 'fields', readyFields, multiMatchConfig)
   }
 
   return queryChain
@@ -36,16 +47,11 @@ const filter: FilterInterface = {
 
     let newQueryChain = this.bodybuilder()
 
-    let searchableAttributes = this.config.elasticsearch.hasOwnProperty('searchableAttributes')
+    let searchableAttributes: MultiMatchItem = this.config.elasticsearch.hasOwnProperty('searchableAttributes')
       ? this.config.elasticsearch.searchableAttributes : { 'name': { 'boost': 1 } }
 
-    let searchableFields: any = {}
-    for (const attribute of Object.keys(searchableAttributes)) {
-      set(searchableFields, attribute, getBoosts(this.config, attribute))
-    }
-
     const multiMatchConfig = getMultiMatchConfig(this.config, value)
-    newQueryChain = getMultimatchQuery(newQueryChain, searchableFields, multiMatchConfig)
+    newQueryChain = getMultimatchQuery(newQueryChain, searchableAttributes, multiMatchConfig)
 
     newQueryChain.orQuery('match_phrase', 'sku', { query: value, boost: 1 })
 
