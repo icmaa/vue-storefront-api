@@ -75,7 +75,7 @@ module.exports = ({ config }) => {
     }
   })
 
-  api.get('/attribute/:code', async (req, res) => {
+  api.get('/attribute/:codes', async (req, res) => {
     const query = adjustQuery({
       index: config.elasticsearch.indices[0],
       method: req.method
@@ -86,10 +86,8 @@ module.exports = ({ config }) => {
       body: {
         '_source': ['attribute_code', 'id', 'options', 'frontend_label'],
         'query': {
-          'term': {
-            'attribute_code': {
-              'value': req.params.code
-            }
+          'terms': {
+            'attribute_code': req.params.codes.split(',')
           }
         }
       }
@@ -99,15 +97,23 @@ module.exports = ({ config }) => {
         return apiStatus(res, 'No attribute found', 400)
       }
 
-      const result = getHits(response)[0]._source
-      if (result && result.options) {
+      const options = getHits(response)
+        .reduce((a, b) => a.concat(b._source.options || []), [])
+
+      if (options) {
         switch (req.query.style) {
           case 'storyblok':
+            const { nameKey, valueKey, sortKey } = req.query
             return res.status(200).json(
-              storyblokConnector.createAttributeOptionArray(result.options)
+              storyblokConnector.createAttributeOptionArray({
+                options,
+                nameKey: (nameKey as string),
+                valueKey: (valueKey as string),
+                sortKey: (sortKey as string)
+              })
             )
           default:
-            return apiStatus(res, result.options, 200)
+            return apiStatus(res, options, 200)
         }
       }
 
@@ -136,30 +142,28 @@ module.exports = ({ config }) => {
       }
     }).then(response => {
       const { body } = response
-      console.log(getTotals(body))
       if (getTotals(body) === 0) {
         return apiStatus(res, 'No categories found', 400)
       }
 
       const hits = getHits(response)
       if (hits) {
-        let results = []
+        let options = []
         hits.forEach(category => {
-          results.push(category._source)
+          options.push(category._source)
         })
 
         switch (req.query.style) {
           case 'storyblok':
             return res.status(200).json(
-              storyblokConnector.createAttributeOptionArray(
-                results,
-                c => `${c.name} (/${c.url_path})`,
-                'slug',
-                false
-              )
+              storyblokConnector.createAttributeOptionArray({
+                options,
+                nameKey: c => `${c.name} (/${c.url_path})`,
+                valueKey: 'slug'
+              })
             )
           default:
-            return apiStatus(res, results, 200)
+            return apiStatus(res, options, 200)
         }
       }
 

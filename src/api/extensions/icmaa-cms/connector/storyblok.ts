@@ -8,6 +8,13 @@ import { objectKeysToCamelCase } from '../helpers/formatter'
 import { extractStoryContent, extractPluginValues } from '../helpers/formatter/storyblok'
 import { sortBy, pick, merge } from 'lodash'
 
+interface CreateAttributeOptionArrayParams {
+  options: any[],
+  nameKey?: string|Function,
+  valueKey?: string,
+  sortKey?: string
+}
+
 class StoryblokConnector {
   protected lang
 
@@ -194,13 +201,13 @@ class StoryblokConnector {
     })
   }
 
-  public createAttributeOptionArray (options, nameKey: string|Function = 'label', valueKey: string = 'value', sortKey: string|boolean = 'sort_order') {
+  public createAttributeOptionArray ({ options, nameKey = 'label', valueKey = 'value', sortKey }: CreateAttributeOptionArrayParams) {
     let result = []
     options.forEach(option => {
       result.push({
         'name': typeof nameKey === 'function' ? nameKey(option) : option[nameKey],
         'value': option[valueKey],
-        'sort_order': sortKey !== false ? option[sortKey as string] : 1
+        'sort_order': sortKey ? option[sortKey as string] : 1
       })
     })
 
