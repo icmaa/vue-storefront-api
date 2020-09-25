@@ -142,9 +142,12 @@ class StoryblokConnector {
             : response.stories.shift() || {}
           const content = extractStoryContent(story)
           objectKeysToCamelCase(content)
-          await extractPluginValues(content)
+          await extractPluginValues(content).catch(e => {
+            console.error('Error during plugin value mapping:', e)
+          })
           return content
-        }).catch(() => {
+        }).catch(e => {
+          console.error('Error during parsing:', e)
           return { }
         })
     } catch (error) {
@@ -184,7 +187,9 @@ class StoryblokConnector {
 
       stories = await Promise.all(
         stories.map(story => extractPluginValues(story))
-      )
+      ).catch(e => {
+        console.error('Error during plugin value mapping:', e)
+      })
 
       if (fields && fields.length > 0) {
         stories = stories.map(story => pick(story, fields.split(',')))
@@ -196,7 +201,8 @@ class StoryblokConnector {
       }
 
       return this.searchRequest({ queryObject, type, page: page + 1, results, fields })
-    }).catch(() => {
+    }).catch(e => {
+      console.error('Error during parsing:', e)
       return []
     })
   }

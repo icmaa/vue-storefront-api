@@ -11,7 +11,7 @@ const getFieldMap = (key) => pluginMap.find(m => m.key === key)
 export const extractPluginValues = async (object) => {
   for (let key in object) {
     let v = object[key]
-    if (typeof v === 'object') {
+    if (v && typeof v === 'object') {
       if (v.plugin) {
         const map = getFieldMap(v.plugin)
         if (map) {
