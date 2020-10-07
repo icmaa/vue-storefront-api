@@ -9,7 +9,7 @@ import loadCustomFilters from '../helpers/loadCustomFilters'
 import { elasticsearch, SearchQuery } from 'storefront-query-builder'
 import { apiError } from '../lib/util'
 
-async function _cacheStorageHandler (config, result, hash, tags) {
+async function _cacheStorageHandler (config, result, hash, tags = []) {
   if (config.server.useOutputCache && cache) {
     return cache.set(
       'api:' + hash,
@@ -121,14 +121,26 @@ export default ({config, db}) => async function (req, res, body) {
           if (_resBody && _resBody.hits && _resBody.hits.hits) { // we're signing up all objects returned to the client to be able to validate them when (for example order)
             const factory = new ProcessorFactory(config)
             const tagsArray = []
+            const categoryTagsArray = []
             if (config.server.useOutputCache && cache) {
               const tagPrefix = entityType[0].toUpperCase() // first letter of entity name: P, T, A ...
               tagsArray.push(entityType)
               _resBody.hits.hits.map(item => {
                 if (item._source.id) { // has common identifier
                   tagsArray.push(`${tagPrefix}${item._source.id}`)
+
+                  if (entityType === 'product' && item._source.hasOwnProperty('category_ids')) {
+                    item._source.category_ids
+                      .filter(id => !categoryTagsArray.includes(`C${id}`))
+                      .forEach(id => categoryTagsArray.push(`C${id}`))
+                  }
                 }
               })
+
+              if (categoryTagsArray.length > 0) {
+                tagsArray.push('category', ...categoryTagsArray)
+              }
+
               const cacheTags = tagsArray.join(' ')
               res.setHeader('X-VS-Cache-Tags', cacheTags)
             }
