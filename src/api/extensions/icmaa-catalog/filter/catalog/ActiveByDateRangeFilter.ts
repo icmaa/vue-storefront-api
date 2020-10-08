@@ -2,7 +2,8 @@ import config from 'config'
 import { FilterInterface } from 'storefront-query-builder'
 import omit from 'lodash/omit'
 
-const defaultFields = config.get<{ from: string, to: string }>('extensions.icmaa-catalog.defaultDateRangeFields')
+interface FilterDefaults { from: string, to: string, utcOffset: string }
+const defaultFields = config.get<FilterDefaults>('extensions.icmaa-catalog.defaultDateRangeFields')
 
 const filter: FilterInterface = {
   priority: 1,
@@ -13,10 +14,11 @@ const filter: FilterInterface = {
       value = {}
     }
 
+    const dateTime = value.dateTime || defaultFields.utcOffset
     const fromField = value.fromField || defaultFields.from
     const toField = value.toField || defaultFields.to
 
-    value = omit(value, ['fromField', 'toField'])
+    value = omit(value, ['dateTime', 'fromField', 'toField'])
 
     queryChain.filter('bool', rangeQuery => {
       rangeQuery
@@ -27,7 +29,7 @@ const filter: FilterInterface = {
               return rangeFromEmptyQuery.notFilter('exists', fromField)
             })
             .orFilter('range', fromField, {
-              ...Object.assign({}, { 'lte': 'now' }, value)
+              ...Object.assign({}, { 'lte': dateTime }, value)
             })
         })
         // To
@@ -37,7 +39,7 @@ const filter: FilterInterface = {
               return rangeToEmptyQuery.notFilter('exists', toField)
             })
             .orFilter('range', toField, {
-              ...Object.assign({}, { 'gte': 'now' }, value)
+              ...Object.assign({}, { 'gte': dateTime }, value)
             })
         })
 
