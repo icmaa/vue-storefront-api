@@ -121,7 +121,10 @@ function adjustBackendProxyUrl (req, indexName, entityType, config) {
 function adjustQuery (esQuery, entityType, config) {
   if (parseInt(config.elasticsearch.apiVersion) < 6) {
     esQuery.type = entityType
+  } else {
+    delete esQuery.type
   }
+
   esQuery.index = adjustIndexName(esQuery.index, entityType, config)
   return esQuery
 }
@@ -142,6 +145,10 @@ const getTotals = body => typeof body.hits.total === 'object' ? body.hits.total.
 
 let esClient = null
 function getClient (config) {
+  if (esClient) {
+    return esClient
+  }
+
   let { host, port, protocol, apiVersion, requestTimeout, pingTimeout } = config.elasticsearch
 
   let nodes = []
@@ -158,9 +165,7 @@ function getClient (config) {
     auth = { username: user, password }
   }
 
-  if (!esClient) {
-    esClient = new es.Client({ nodes, auth, apiVersion, requestTimeout, pingTimeout })
-  }
+  esClient = new es.Client({ nodes, auth, apiVersion, requestTimeout, pingTimeout })
 
   return esClient
 }

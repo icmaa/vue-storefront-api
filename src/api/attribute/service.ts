@@ -56,12 +56,12 @@ async function getAttributeFromCache (attributeCode: string, config) {
 /**
  * Save attributes in cache
  */
-async function setAttributeInCache (attributeList, config) {
+async function setAttributeInCache (attributeList, indexName: string, config) {
   if (config.server.useOutputCache && cache) {
     try {
       await Promise.all(
         attributeList.map(attribute => (cache as TagCache).set(
-          'api:attribute-list' + attribute.attribute_code,
+          `api:attribute-list:${indexName}:${attribute.attribute_code}`,
           attribute,
           []
         ))
@@ -126,7 +126,7 @@ async function list (attributesParam: AttributeListParam, config, indexName: str
     const fetchedAttributeList = get(response.body, 'hits.hits', []).map(hit => hit._source)
 
     // save atrributes in cache
-    await setAttributeInCache(fetchedAttributeList, config)
+    await setAttributeInCache(fetchedAttributeList, indexName, config)
 
     // cached and fetched attributes
     const allAttributes = [
