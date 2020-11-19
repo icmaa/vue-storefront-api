@@ -29,12 +29,12 @@ jobs:
 
       - name: Get repository name, and branch name
         run: |
-           echo ::set-env name=APP::$(echo ${GITHUB_REPOSITORY##*/})
-           echo ::set-env name=BRANCH_NAME::$(echo ${GITHUB_REF#refs/heads/})
+          echo "APP=$(echo ${GITHUB_REPOSITORY##*/})" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
 
       - name: Get environment by branch
         run: |
-          echo ::set-env name=ENV::$(if [ ${{ env.BRANCH_NAME }} = "master" ]; then echo "production"; else echo "test"; fi)
+          echo "ENV=$(if [ ${{ env.BRANCH_NAME }} = "master" ]; then echo "production"; else echo "test"; fi)" >> $GITHUB_ENV
 
       - name: Checkout "icmaa/shop-workspace" repo
         run: |

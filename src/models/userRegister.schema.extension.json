@@ -45,6 +45,14 @@
             "string"
           ]
         },
+        "cluster": {
+          "type": [
+            "null",
+            "number",
+            "string"
+          ],
+          "pattern": "[a-zA-Z0-9]+"
+        },
         "newsletter": {
           "type": "boolean"
         }
