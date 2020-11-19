@@ -84,6 +84,7 @@
         },
         "cluster": {
           "type": [
+            "null",
             "number",
             "string"
           ],
