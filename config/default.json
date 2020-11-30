@@ -257,7 +257,8 @@
       }
     },
     "action": {
-      "type": "local"
+      "type": "local",
+      "supportWebp": false
     }
   },
   "entities": {
