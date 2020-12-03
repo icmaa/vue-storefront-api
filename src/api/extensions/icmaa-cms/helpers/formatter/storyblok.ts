@@ -20,7 +20,12 @@ export const extractPluginValues = async (object) => {
           if (v.plugin === 'icmaa-syntax-highlighter') {
             if (v.language === 'yaml') {
               object[key] = JSON.stringify(
-                await import('yaml').then(m => m.default.parse(object[key]))
+                await import('yaml')
+                  .then(m => m.default.parse(object[key]))
+                  .catch(e => {
+                    console.error('Error during YAML parsing in value mapping:', e)
+                    return {}
+                  })
               )
             }
           }
@@ -35,7 +40,12 @@ export const extractPluginValues = async (object) => {
     }
 
     if (/(rte|markdown)$/.test(key)) {
-      object[key] = await import('marked').then(m => m.default(object[key]))
+      object[key] = await import('marked')
+        .then(m => m.default(object[key]))
+        .catch(e => {
+          console.error('Error during Markdown parsing in value mapping:', e)
+          return ''
+        })
     }
   }
 
