@@ -20,11 +20,12 @@ module.exports = ({ config }) => {
     const accessToken = await Axios.post(apiTokenUrl, null, {
       params: { grant_type: 'client_credentials' },
       auth: { username, password }
-    })
-      .then(response => response.data.access_token)
-      .catch(() => {
-        return apiStatus(res, `Couldn't fetch access-token`, 400)
-      })
+    }).then(r => r.data.access_token)
+      .catch(() => false)
+
+    if (!accessToken || accessToken === '') {
+      return apiStatus(res, `Couldn't fetch access-token`, 400)
+    }
 
     const apiUrl = 'https://api.spotify.com/v1'
     const artistId = await Axios.get(apiUrl + '/search', {
