@@ -28,12 +28,14 @@ module.exports = ({ config }) => {
     }
 
     if (ip) {
-      const redis = Redis(config, 'form-' + name)
-      if (await redis.get(ip)) {
+      const RedisTagCache = Redis(config, `mail-${name}`)
+      if (await RedisTagCache.get(ip)) {
         apiStatus(res, 'Your IP has already been used.', 500)
+        RedisTagCache.redis.quit()
         return
       }
-      await redis.set(ip, true, [])
+      await RedisTagCache.set(ip, true, [])
+      RedisTagCache.redis.quit()
     }
 
     const userData = req.body

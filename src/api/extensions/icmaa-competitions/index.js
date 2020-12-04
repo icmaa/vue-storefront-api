@@ -19,10 +19,12 @@ module.exports = ({ config }) => {
       delete form.recaptcha
     }
 
-    const redis = Redis(config, 'form-' + spreadsheetId)
+    const RedisTagCache = Redis(config, `form-${spreadsheetId}`)
     if (form.ip) {
-      if (await redis.get(form.ip)) {
+      const cachedIp = await RedisTagCache.get(form.ip)
+      if (cachedIp) {
         apiStatus(res, 'Your IP has already been used.', 500)
+        RedisTagCache.redis.quit()
         return
       }
     }
@@ -60,13 +62,16 @@ module.exports = ({ config }) => {
       })
       .then(async resp => {
         if (form.ip) {
-          await redis.set(form.ip, true, [])
+          await RedisTagCache.set(form.ip, true, [])
         }
 
         apiStatus(res, true, 200)
       })
       .catch(err => {
         apiStatus(res, err.message, 500)
+      })
+      .finally(() => {
+        RedisTagCache.redis.quit()
       })
   })
 
