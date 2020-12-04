@@ -39,11 +39,11 @@ function transformAggsToAttributeListParam (aggregations): AttributeListParam {
 /**
  * Returns attributes from cache
  */
-async function getAttributeFromCache (attributeCode: string, config) {
+async function getAttributeFromCache (attributeCode: string, indexName: string, config) {
   if (config.server.useOutputCache && cache) {
     try {
       const res = await (cache as TagCache).get(
-        'api:attribute-list' + attributeCode
+        `api:attribute-list:${indexName}:${attributeCode}`
       )
       return res
     } catch (err) {
@@ -91,7 +91,7 @@ async function list (attributesParam: AttributeListParam, config, indexName: str
 
   // here we check if some of attribute are in cache
   const rawCachedAttributeList = await Promise.all(
-    attributeCodes.map(attributeCode => getAttributeFromCache(attributeCode, config))
+    attributeCodes.map(attributeCode => getAttributeFromCache(attributeCode, indexName, config))
   )
 
   const cachedAttributeList = rawCachedAttributeList
