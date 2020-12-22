@@ -155,7 +155,7 @@ class StoryblokConnector {
     }
   }
 
-  public async search ({ type, q, lang, fields, page, size, limit, sort }) {
+  public async search ({ type, q, lang, fields, page, size, sort }) {
     this.matchLanguage(lang)
 
     let queryObject: any = { 'identifier': { 'in': q } }
@@ -166,21 +166,19 @@ class StoryblokConnector {
 
     if (page) page = parseInt(page)
     if (size) size = parseInt(size)
-    if (limit) limit = parseInt(limit)
-    if (limit && size && limit > 0 && size > limit) size = limit
     if (sort) sort = `content.${sort}`
 
     try {
-      return this.searchRequest({ queryObject, type, fields, page, size, limit, sort })
+      return this.searchRequest({ queryObject, type, fields, page, size, sort })
     } catch (error) {
       throw error
     }
   }
 
-  public async searchRequest ({ queryObject, type, results = [], fields, page = 1, size = 25, limit = 0, sort }) {
+  public async searchRequest ({ queryObject, type, results = [], fields, page, size = 25, sort }) {
     const sort_by = sort ? { 'sort_by': sort } : {}
     return this.api().get('cdn/stories', {
-      'page': page,
+      'page': page || 1,
       'per_page': size,
       'starts_with': this.lang ? `${this.lang}/*` : '',
       'filter_query_v2': {
@@ -204,15 +202,11 @@ class StoryblokConnector {
       }
 
       results = [].concat(results, stories)
-      if (stories.length < size || (limit > 0 && results.length >= limit)) {
-        if (limit > 0 && results.length > limit) {
-          results = results.slice(0, limit)
-        }
-
+      if (stories.length < size || page !== undefined) {
         return results
       }
 
-      return this.searchRequest({ queryObject, type, results, fields, page: page + 1, size, limit, sort })
+      return this.searchRequest({ queryObject, type, results, fields, page: page + 1, size, sort })
     }).catch(e => {
       console.error('Error during parsing:', e)
       return []
