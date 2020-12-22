@@ -155,7 +155,7 @@ class StoryblokConnector {
     }
   }
 
-  public async search ({ type, q, lang, fields }) {
+  public async search ({ type, q, lang, fields, page, size, limit, sort }) {
     this.matchLanguage(lang)
 
     let queryObject: any = { 'identifier': { 'in': q } }
@@ -164,22 +164,30 @@ class StoryblokConnector {
       queryObject = jsonQuery
     }
 
+    if (page) page = parseInt(page)
+    if (size) size = parseInt(size)
+    if (limit) limit = parseInt(limit)
+    if (limit && size && limit > 0 && size > limit) size = limit
+    if (sort) sort = `content.${sort}`
+
     try {
-      return this.searchRequest({ queryObject, type, page: 1, fields })
+      return this.searchRequest({ queryObject, type, fields, page, size, limit, sort })
     } catch (error) {
       throw error
     }
   }
 
-  public async searchRequest ({ queryObject, type, page = 1, results = [], fields }) {
+  public async searchRequest ({ queryObject, type, results = [], fields, page = 1, size = 25, limit = 0, sort }) {
+    const sort_by = sort ? { 'sort_by': sort } : {}
     return this.api().get('cdn/stories', {
       'page': page,
-      'per_page': 25,
+      'per_page': size,
       'starts_with': this.lang ? `${this.lang}/*` : '',
       'filter_query_v2': {
         'component': { 'in': type },
         ...queryObject
-      }
+      },
+      ...sort_by
     }).then(async response => {
       let stories = response.stories
         .map(story => extractStoryContent(story))
@@ -196,11 +204,15 @@ class StoryblokConnector {
       }
 
       results = [].concat(results, stories)
-      if (stories.length < 25) {
+      if (stories.length < size || (limit > 0 && results.length >= limit)) {
+        if (limit > 0 && results.length > limit) {
+          results = results.slice(0, limit)
+        }
+
         return results
       }
 
-      return this.searchRequest({ queryObject, type, page: page + 1, results, fields })
+      return this.searchRequest({ queryObject, type, results, fields, page: page + 1, size, limit, sort })
     }).catch(e => {
       console.error('Error during parsing:', e)
       return []
